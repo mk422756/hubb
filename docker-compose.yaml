@@ -1,0 +1,37 @@
+version: '3'
+services:
+  app:
+    environment:
+     - GIN_MODE=debug
+     - MYSQL_ROOT_PASSWORD=root
+     - MYSQL_USER=test
+     - MYSQL_PASSWORD=test
+     - MYSQL_DATABASE=test
+     - MYSQL_HOST=db
+     - SECRETS_FILE=/hubb/secrets/serviceAccountKey.json
+    build: .
+    image: hubb
+    container_name: hubb
+    volumes:
+      - .:/hubb
+    ports:
+      - "8080:8080"
+    depends_on:
+      - "db"
+    command: fresh -c /hubb/fresh.conf
+    
+  db: 
+    image: mysql:5.7
+    command: mysqld --character-set-server=utf8 --collation-server=utf8_unicode_ci
+    ports:
+      - "3306:3306"
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: test
+      MYSQL_PASSWORD: test
+      MYSQL_DATABASE: test
+    volumes:
+      - mysqldata:/var/lib/mysql
+
+volumes:
+  mysqldata:
