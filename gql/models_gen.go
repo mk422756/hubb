@@ -2,12 +2,19 @@
 
 package gql
 
-type NewTodo struct {
+type NewPage struct {
 	Text   string `json:"text"`
-	UserID string `json:"userId"`
+	Name   string `json:"name"`
+	UserID int    `json:"userId"`
 }
 
-type User struct {
-	ID   string `json:"id"`
-	Name string `json:"name"`
+type NewUser struct {
+	Name      string `json:"name"`
+	AccountID string `json:"accountId"`
+	UID       string `json:"uid"`
+}
+
+type UpdateUser struct {
+	Name        *string `json:"name"`
+	Description *string `json:"description"`
 }

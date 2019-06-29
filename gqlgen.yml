@@ -13,5 +13,12 @@ resolver:
   filename: gql/resolver.go
   type: Resolver
 models:
-  Todo:
-    model: github.com/hubbdevelopers/gql.Todo
+  ID:
+    model:  github.com/99designs/gqlgen/graphql.IntID
+  User:
+    model: github.com/hubbdevelopers/db.User
+    fields:
+      pages:
+        resolver: true # force a resolver to be generated
+  Page:
+    model: github.com/hubbdevelopers/db.Page

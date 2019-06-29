@@ -1,24 +1,46 @@
-type Todo {
-  id: ID!
-  text: String!
-  done: Boolean!
-  user: User!
-}
-
 type User {
   id: ID!
   name: String!
+  accountId: String!
+  image: String!
+  description: String!
+  pages: [Page!]!
+}
+
+type Page {
+  id: ID!
+  name: String!
+  text: String!
+  user: User!
+  image: String!
 }
 
 type Query {
-  todos: [Todo!]!
+  users: [User!]!
+  user(id: ID, accountId: String): User!
+  pages: [Page!]!
+  page(id: ID): Page!
 }
 
-input NewTodo {
+input NewUser {
+  name: String!
+  accountId: String!
+  uid: String!
+}
+
+input UpdateUser {
+  name: String
+  description: String
+}
+
+input NewPage {
   text: String!
-  userId: String!
+  name: String!
+  userId: ID!
 }
 
 type Mutation {
-  createTodo(input: NewTodo!): Todo!
+  createUser(input: NewUser!): User!
+  updateUser(id: ID!, input: UpdateUser!): User!
+  createPage(input: NewPage!): Page!
 }
