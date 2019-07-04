@@ -3,6 +3,8 @@ package gql
 
 import (
 	"context"
+	"log"
+	"time"
 
 	"github.com/hubbdevelopers/db"
 ) // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
@@ -53,6 +55,31 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input UpdateU
 		dbOrm.Model(&user).Update("Name", *input.Name)
 	}
 
+	if input.Birthday != nil {
+		date, err := time.Parse("2006-01-02", *input.Birthday)
+		if err != nil {
+			log.Println(err.Error())
+		} else {
+			dbOrm.Model(&user).Update("Birthday", date)
+		}
+	}
+
+	if input.Twitter != nil {
+		dbOrm.Model(&user).Update("Twitter", *input.Twitter)
+	}
+
+	if input.Instagram != nil {
+		dbOrm.Model(&user).Update("Instagram", *input.Instagram)
+	}
+
+	if input.Facebook != nil {
+		dbOrm.Model(&user).Update("Facebook", *input.Facebook)
+	}
+
+	if input.Homepage != nil {
+		dbOrm.Model(&user).Update("Homepage", *input.Homepage)
+	}
+
 	return &user, nil
 }
 
@@ -94,13 +121,15 @@ func (r *queryResolver) Users(ctx context.Context) ([]*db.User, error) {
 	return users, nil
 }
 
-func (r *queryResolver) User(ctx context.Context, id *int, accountID *string) (*db.User, error) {
+func (r *queryResolver) User(ctx context.Context, id *int, accountID *string, uid *string) (*db.User, error) {
 	dbOrm := db.GetDB()
 	user := db.User{}
 	if id != nil {
 		dbOrm.First(&user, *id)
 	} else if accountID != nil {
 		dbOrm.Where("account_id = ?", *accountID).First((&user))
+	} else if uid != nil {
+		dbOrm.Where("uid = ?", *uid).First((&user))
 	}
 
 	return &user, nil
@@ -112,8 +141,8 @@ func (r *userResolver) ID(ctx context.Context, obj *db.User) (int, error) {
 	return int(obj.ID), nil
 }
 
-func (r *userResolver) AccountID(ctx context.Context, obj *db.User) (string, error) {
-	return obj.AccountID, nil
+func (r *userResolver) Birthday(ctx context.Context, obj *db.User) (string, error) {
+	return obj.Birthday.Format("2006-01-02"), nil
 }
 
 func (r *userResolver) Pages(ctx context.Context, obj *db.User) ([]*db.Page, error) {

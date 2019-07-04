@@ -5,16 +5,21 @@ import (
 )
 
 type User struct {
-	ID          uint `gorm:"primary_key"`
-	UID         string
+	ID          uint   `gorm:"primary_key"`
+	UID         string `sql:"index"`
 	CreatedAt   time.Time
 	UpdatedAt   time.Time
 	DeletedAt   *time.Time `sql:"index"`
-	Name        string
-	AccountID   string
+	Name        string     `sql:"index"`
+	AccountID   string     `sql:"index"`
 	Image       string
 	Description string
-	Pages       []Page `gorm:"foreignkey:UserID"`
+	Twitter     string
+	Instagram   string
+	Facebook    string
+	Homepage    string
+	Birthday    time.Time `sql:"type:date"`
+	Pages       []Page    `gorm:"foreignkey:UserID"`
 }
 
 type Page struct {

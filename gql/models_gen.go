@@ -17,4 +17,9 @@ type NewUser struct {
 type UpdateUser struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`
+	Twitter     *string `json:"twitter"`
+	Instagram   *string `json:"instagram"`
+	Facebook    *string `json:"facebook"`
+	Homepage    *string `json:"homepage"`
+	Birthday    *string `json:"birthday"`
 }
