@@ -3,7 +3,6 @@ package gql
 
 import (
 	"context"
-	"log"
 	"time"
 
 	"github.com/hubbdevelopers/db"
@@ -37,7 +36,9 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input NewUser) (*db.U
 		UID:       input.UID,
 	}
 
-	dbOrm.Create(user)
+	if result := dbOrm.Create(user); result.Error != nil {
+		return nil, result.Error
+	}
 
 	return user, nil
 }
@@ -47,40 +48,68 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input UpdateU
 	user := db.User{}
 	dbOrm.First(&user, id)
 
+	tx := dbOrm.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
 	if input.Description != nil {
-		dbOrm.Model(&user).Update("Description", *input.Description)
+		if result := tx.Model(&user).Update("Description", *input.Description); result.Error != nil {
+			tx.Rollback()
+			return nil, result.Error
+		}
 	}
 
 	if input.Name != nil {
-		dbOrm.Model(&user).Update("Name", *input.Name)
+		if result := tx.Model(&user).Update("Name", *input.Name); result.Error != nil {
+			tx.Rollback()
+			return nil, result.Error
+		}
 	}
 
 	if input.Birthday != nil {
 		date, err := time.Parse("2006-01-02", *input.Birthday)
 		if err != nil {
-			log.Println(err.Error())
-		} else {
-			dbOrm.Model(&user).Update("Birthday", date)
+			tx.Rollback()
+			return nil, err
+		}
+		if result := tx.Model(&user).Update("Birthday", date); result.Error != nil {
+			tx.Rollback()
+			return nil, result.Error
 		}
 	}
 
 	if input.Twitter != nil {
-		dbOrm.Model(&user).Update("Twitter", *input.Twitter)
+		if result := tx.Model(&user).Update("Twitter", *input.Twitter); result.Error != nil {
+			tx.Rollback()
+			return nil, result.Error
+		}
 	}
 
 	if input.Instagram != nil {
-		dbOrm.Model(&user).Update("Instagram", *input.Instagram)
+		if result := tx.Model(&user).Update("Instagram", *input.Instagram); result.Error != nil {
+			tx.Rollback()
+			return nil, result.Error
+		}
 	}
 
 	if input.Facebook != nil {
-		dbOrm.Model(&user).Update("Facebook", *input.Facebook)
+		if result := tx.Model(&user).Update("Facebook", *input.Facebook); result.Error != nil {
+			tx.Rollback()
+			return nil, result.Error
+		}
 	}
 
 	if input.Homepage != nil {
-		dbOrm.Model(&user).Update("Homepage", *input.Homepage)
+		if result := tx.Model(&user).Update("Homepage", *input.Homepage); result.Error != nil {
+			tx.Rollback()
+			return nil, result.Error
+		}
 	}
 
-	return &user, nil
+	return &user, tx.Commit().Error
 }
 
 func (r *mutationResolver) CreatePage(ctx context.Context, input NewPage) (*db.Page, error) {
@@ -90,7 +119,9 @@ func (r *mutationResolver) CreatePage(ctx context.Context, input NewPage) (*db.P
 		UserID: uint(input.UserID),
 		Name:   input.Name,
 	}
-	dbOrm.Create(page)
+	if result := dbOrm.Create(page); result.Error != nil {
+		return nil, result.Error
+	}
 
 	return page, nil
 }
@@ -100,7 +131,9 @@ type queryResolver struct{ *Resolver }
 func (r *queryResolver) Pages(ctx context.Context) ([]*db.Page, error) {
 	dbOrm := db.GetDB()
 	pages := []*db.Page{}
-	dbOrm.Find(&pages)
+	if result := dbOrm.Find(&pages); result.Error != nil {
+		return nil, result.Error
+	}
 
 	return pages, nil
 }
@@ -108,7 +141,9 @@ func (r *queryResolver) Pages(ctx context.Context) ([]*db.Page, error) {
 func (r *queryResolver) Page(ctx context.Context, id *int) (*db.Page, error) {
 	dbOrm := db.GetDB()
 	page := db.Page{}
-	dbOrm.First(&page, *id)
+	if result := dbOrm.First(&page, *id); result.Error != nil {
+		return nil, result.Error
+	}
 
 	return &page, nil
 }
@@ -116,7 +151,9 @@ func (r *queryResolver) Page(ctx context.Context, id *int) (*db.Page, error) {
 func (r *queryResolver) Users(ctx context.Context) ([]*db.User, error) {
 	dbOrm := db.GetDB()
 	users := []*db.User{}
-	dbOrm.Find(&users)
+	if result := dbOrm.Find(&users); result.Error != nil {
+		return nil, result.Error
+	}
 
 	return users, nil
 }
@@ -125,11 +162,17 @@ func (r *queryResolver) User(ctx context.Context, id *int, accountID *string, ui
 	dbOrm := db.GetDB()
 	user := db.User{}
 	if id != nil {
-		dbOrm.First(&user, *id)
+		if result := dbOrm.First(&user, *id); result.Error != nil {
+			return nil, result.Error
+		}
 	} else if accountID != nil {
-		dbOrm.Where("account_id = ?", *accountID).First((&user))
+		if result := dbOrm.Where("account_id = ?", *accountID).First((&user)); result.Error != nil {
+			return nil, result.Error
+		}
 	} else if uid != nil {
-		dbOrm.Where("uid = ?", *uid).First((&user))
+		if result := dbOrm.Where("uid = ?", *uid).First((&user)); result.Error != nil {
+			return nil, result.Error
+		}
 	}
 
 	return &user, nil
@@ -148,7 +191,9 @@ func (r *userResolver) Birthday(ctx context.Context, obj *db.User) (string, erro
 func (r *userResolver) Pages(ctx context.Context, obj *db.User) ([]*db.Page, error) {
 	dbOrm := db.GetDB()
 	pages := []*db.Page{}
-	dbOrm.Model(obj).Related(&pages)
+	if result := dbOrm.Model(obj).Related(&pages); result.Error != nil {
+		return nil, result.Error
+	}
 	return pages, nil
 }
 
@@ -158,7 +203,9 @@ func (r *pageResolver) User(ctx context.Context, obj *db.Page) (*db.User, error)
 
 	dbOrm := db.GetDB()
 	user := db.User{}
-	dbOrm.First(&user, obj.UserID)
+	if result := dbOrm.First(&user, obj.UserID); result.Error != nil {
+		return nil, result.Error
+	}
 	return &user, nil
 }
 

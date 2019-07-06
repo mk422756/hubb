@@ -18,7 +18,7 @@ type User struct {
 	Instagram   string
 	Facebook    string
 	Homepage    string
-	Birthday    time.Time `sql:"type:date"`
+	Birthday    time.Time `sql:"type:date" gorm:"default:'1970-01-01'"`
 	Pages       []Page    `gorm:"foreignkey:UserID"`
 }
 
