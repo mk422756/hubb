@@ -10,6 +10,8 @@ type User {
   homepage: String!
   birthday: String!
   pages: [Page!]!
+  createdAt: String!
+  updatedAt: String!
 }
 
 type Page {
@@ -18,6 +20,8 @@ type Page {
   text: String!
   user: User!
   image: String!
+  createdAt: String!
+  updatedAt: String!
 }
 
 type Query {

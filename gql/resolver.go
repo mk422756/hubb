@@ -197,6 +197,14 @@ func (r *userResolver) Pages(ctx context.Context, obj *db.User) ([]*db.Page, err
 	return pages, nil
 }
 
+func (r *userResolver) CreatedAt(ctx context.Context, obj *db.User) (string, error) {
+	return obj.CreatedAt.String(), nil
+}
+
+func (r *userResolver) UpdatedAt(ctx context.Context, obj *db.User) (string, error) {
+	return obj.UpdatedAt.String(), nil
+}
+
 type pageResolver struct{ *Resolver }
 
 func (r *pageResolver) User(ctx context.Context, obj *db.Page) (*db.User, error) {
@@ -211,4 +219,12 @@ func (r *pageResolver) User(ctx context.Context, obj *db.Page) (*db.User, error)
 
 func (r *pageResolver) ID(ctx context.Context, obj *db.Page) (int, error) {
 	return int(obj.ID), nil
+}
+
+func (r *pageResolver) CreatedAt(ctx context.Context, obj *db.Page) (string, error) {
+	return obj.CreatedAt.String(), nil
+}
+
+func (r *pageResolver) UpdatedAt(ctx context.Context, obj *db.Page) (string, error) {
+	return obj.UpdatedAt.String(), nil
 }

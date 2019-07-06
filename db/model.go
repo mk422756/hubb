@@ -29,6 +29,6 @@ type Page struct {
 	DeletedAt *time.Time `sql:"index"`
 	UserID    uint
 	Name      string
-	Text      string
+	Text      string `sql:"type:text"`
 	Image     string
 }
