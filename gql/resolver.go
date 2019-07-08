@@ -46,7 +46,9 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input NewUser) (*db.U
 func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input UpdateUser) (*db.User, error) {
 	dbOrm := db.GetDB()
 	user := db.User{}
-	dbOrm.First(&user, id)
+	if result := dbOrm.First(&user, id); result.Error != nil {
+		return nil, result.Error
+	}
 
 	tx := dbOrm.Begin()
 	defer func() {
@@ -124,6 +126,31 @@ func (r *mutationResolver) CreatePage(ctx context.Context, input NewPage) (*db.P
 	}
 
 	return page, nil
+}
+
+func (r *mutationResolver) UpdatePage(ctx context.Context, id int, input UpdatePage) (*db.Page, error) {
+	dbOrm := db.GetDB()
+	page := db.Page{}
+	if result := dbOrm.First(&page, id); result.Error != nil {
+		return nil, result.Error
+	}
+
+	tx := dbOrm.Begin()
+	if input.Name != nil {
+		if result := tx.Model(&page).Update("Name", *input.Name); result.Error != nil {
+			tx.Rollback()
+			return nil, result.Error
+		}
+	}
+
+	if input.Text != nil {
+		if result := tx.Model(&page).Update("Text", *input.Text); result.Error != nil {
+			tx.Rollback()
+			return nil, result.Error
+		}
+	}
+
+	return &page, tx.Commit().Error
 }
 
 type queryResolver struct{ *Resolver }

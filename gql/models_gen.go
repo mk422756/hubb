@@ -14,6 +14,11 @@ type NewUser struct {
 	UID       string `json:"uid"`
 }
 
+type UpdatePage struct {
+	Text *string `json:"text"`
+	Name *string `json:"name"`
+}
+
 type UpdateUser struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`

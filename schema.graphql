@@ -53,10 +53,16 @@ input NewPage {
   userId: ID!
 }
 
+input UpdatePage {
+  text: String
+  name: String
+}
+
 type Mutation {
   createUser(input: NewUser!): User!
   updateUser(id: ID!, input: UpdateUser!): User!
   createPage(input: NewPage!): Page!
+  updatePage(id: ID!, input: UpdatePage!): Page!
 }
 
 scalar Time
