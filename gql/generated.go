@@ -501,6 +501,7 @@ input NewPage {
 input UpdatePage {
   text: String
   name: String
+  image: String
 }
 
 type Mutation {
@@ -2465,6 +2466,12 @@ func (ec *executionContext) unmarshalInputUpdatePage(ctx context.Context, v inte
 		case "name":
 			var err error
 			it.Name, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "image":
+			var err error
+			it.Image, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

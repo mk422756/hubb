@@ -157,6 +157,13 @@ func (r *mutationResolver) UpdatePage(ctx context.Context, id int, input UpdateP
 		}
 	}
 
+	if input.Image != nil {
+		if result := tx.Model(&page).Update("Image", *input.Image); result.Error != nil {
+			tx.Rollback()
+			return nil, result.Error
+		}
+	}
+
 	return &page, tx.Commit().Error
 }
 

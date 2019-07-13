@@ -15,8 +15,9 @@ type NewUser struct {
 }
 
 type UpdatePage struct {
-	Text *string `json:"text"`
-	Name *string `json:"name"`
+	Text  *string `json:"text"`
+	Name  *string `json:"name"`
+	Image *string `json:"image"`
 }
 
 type UpdateUser struct {

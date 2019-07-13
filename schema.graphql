@@ -58,6 +58,7 @@ input NewPage {
 input UpdatePage {
   text: String
   name: String
+  image: String
 }
 
 type Mutation {
