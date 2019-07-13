@@ -46,6 +46,7 @@ input UpdateUser {
   facebook: String
   homepage: String
   birthday: String
+  image: String
 }
 
 input NewPage {

@@ -489,6 +489,7 @@ input UpdateUser {
   facebook: String
   homepage: String
   birthday: String
+  image: String
 }
 
 input NewPage {
@@ -2518,6 +2519,12 @@ func (ec *executionContext) unmarshalInputUpdateUser(ctx context.Context, v inte
 		case "birthday":
 			var err error
 			it.Birthday, err = ec.unmarshalOString2ᚖstring(ctx, v)
+			if err != nil {
+				return it, err
+			}
+		case "image":
+			var err error
+			it.Image, err = ec.unmarshalOString2ᚖstring(ctx, v)
 			if err != nil {
 				return it, err
 			}

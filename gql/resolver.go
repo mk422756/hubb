@@ -71,6 +71,13 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input UpdateU
 		}
 	}
 
+	if input.Image != nil {
+		if result := tx.Model(&user).Update("Image", *input.Image); result.Error != nil {
+			tx.Rollback()
+			return nil, result.Error
+		}
+	}
+
 	if input.Birthday != nil {
 		date, err := time.Parse("2006-01-02", *input.Birthday)
 		if err != nil {

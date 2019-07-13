@@ -27,4 +27,5 @@ type UpdateUser struct {
 	Facebook    *string `json:"facebook"`
 	Homepage    *string `json:"homepage"`
 	Birthday    *string `json:"birthday"`
+	Image       *string `json:"image"`
 }
