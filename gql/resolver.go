@@ -167,6 +167,22 @@ func (r *mutationResolver) UpdatePage(ctx context.Context, id int, input UpdateP
 	return &page, tx.Commit().Error
 }
 
+func (r *mutationResolver) DeletePage(ctx context.Context, id int) (*bool, error) {
+	dbOrm := db.GetDB()
+	page := db.Page{}
+	ret := false
+	if result := dbOrm.First(&page, id); result.Error != nil {
+		return &ret, result.Error
+	}
+
+	if result := dbOrm.Delete(&page); result.Error != nil {
+		return &ret, result.Error
+	}
+
+	ret = true
+	return &ret, nil
+}
+
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Pages(ctx context.Context) ([]*db.Page, error) {

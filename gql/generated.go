@@ -48,6 +48,7 @@ type ComplexityRoot struct {
 	Mutation struct {
 		CreatePage func(childComplexity int, input NewPage) int
 		CreateUser func(childComplexity int, input NewUser) int
+		DeletePage func(childComplexity int, id int) int
 		UpdatePage func(childComplexity int, id int, input UpdatePage) int
 		UpdateUser func(childComplexity int, id int, input UpdateUser) int
 	}
@@ -92,6 +93,7 @@ type MutationResolver interface {
 	UpdateUser(ctx context.Context, id int, input UpdateUser) (*db.User, error)
 	CreatePage(ctx context.Context, input NewPage) (*db.Page, error)
 	UpdatePage(ctx context.Context, id int, input UpdatePage) (*db.Page, error)
+	DeletePage(ctx context.Context, id int) (*bool, error)
 }
 type PageResolver interface {
 	ID(ctx context.Context, obj *db.Page) (int, error)
@@ -154,6 +156,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Mutation.CreateUser(childComplexity, args["input"].(NewUser)), true
+
+	case "Mutation.deletePage":
+		if e.complexity.Mutation.DeletePage == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_deletePage_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.DeletePage(childComplexity, args["id"].(int)), true
 
 	case "Mutation.updatePage":
 		if e.complexity.Mutation.UpdatePage == nil {
@@ -509,6 +523,7 @@ type Mutation {
   updateUser(id: ID!, input: UpdateUser!): User!
   createPage(input: NewPage!): Page!
   updatePage(id: ID!, input: UpdatePage!): Page!
+  deletePage(id: ID!): Boolean
 }
 
 scalar Time`},
@@ -543,6 +558,20 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 		}
 	}
 	args["input"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_deletePage_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 int
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
 	return args, nil
 }
 
@@ -814,6 +843,37 @@ func (ec *executionContext) _Mutation_updatePage(ctx context.Context, field grap
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNPage2ᚖgithubᚗcomᚋhubbdevelopersᚋdbᚐPage(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_deletePage(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_deletePage_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	rctx.Args = args
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().DeletePage(rctx, args["id"].(int))
+	})
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*bool)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalOBoolean2ᚖbool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Page_id(ctx context.Context, field graphql.CollectedField, obj *db.Page) graphql.Marshaler {
@@ -2584,6 +2644,8 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "deletePage":
+			out.Values[i] = ec._Mutation_deletePage(ctx, field)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}

@@ -66,6 +66,7 @@ type Mutation {
   updateUser(id: ID!, input: UpdateUser!): User!
   createPage(input: NewPage!): Page!
   updatePage(id: ID!, input: UpdatePage!): Page!
+  deletePage(id: ID!): Boolean
 }
 
 scalar Time
