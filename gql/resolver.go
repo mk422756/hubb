@@ -43,6 +43,20 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input NewUser) (*db.U
 	return user, nil
 }
 
+func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (bool, error) {
+	dbOrm := db.GetDB()
+	user := db.User{}
+	if result := dbOrm.First(&user, id); result.Error != nil {
+		return false, result.Error
+	}
+
+	if result := dbOrm.Delete(user); result.Error != nil {
+		return false, result.Error
+	}
+
+	return true, nil
+}
+
 func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input UpdateUser) (*db.User, error) {
 	dbOrm := db.GetDB()
 	user := db.User{}
@@ -167,20 +181,18 @@ func (r *mutationResolver) UpdatePage(ctx context.Context, id int, input UpdateP
 	return &page, tx.Commit().Error
 }
 
-func (r *mutationResolver) DeletePage(ctx context.Context, id int) (*bool, error) {
+func (r *mutationResolver) DeletePage(ctx context.Context, id int) (bool, error) {
 	dbOrm := db.GetDB()
 	page := db.Page{}
-	ret := false
 	if result := dbOrm.First(&page, id); result.Error != nil {
-		return &ret, result.Error
+		return false, result.Error
 	}
 
 	if result := dbOrm.Delete(&page); result.Error != nil {
-		return &ret, result.Error
+		return false, result.Error
 	}
 
-	ret = true
-	return &ret, nil
+	return true, nil
 }
 
 type queryResolver struct{ *Resolver }
