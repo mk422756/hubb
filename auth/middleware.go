@@ -32,10 +32,7 @@ func UIDMiddleware(h http.Handler) http.Handler {
 			println(e.Error())
 		}
 
-		println(idToken)
-
 		if token != nil {
-			println(token.UID)
 			ctx2 := SetUID(ctx, token.UID)
 			r = r.WithContext(ctx2)
 		}

@@ -3,8 +3,10 @@ package gql
 
 import (
 	"context"
+	"errors"
 	"time"
 
+	"github.com/hubbdevelopers/auth"
 	"github.com/hubbdevelopers/db"
 ) // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
 
@@ -50,6 +52,10 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (bool, error)
 		return false, result.Error
 	}
 
+	if result := auth.Check(ctx, user); result == false {
+		return false, errors.New("Auth Checker Error")
+	}
+
 	if result := dbOrm.Delete(user); result.Error != nil {
 		return false, result.Error
 	}
@@ -62,6 +68,10 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input UpdateU
 	user := db.User{}
 	if result := dbOrm.First(&user, id); result.Error != nil {
 		return nil, result.Error
+	}
+
+	if result := auth.Check(ctx, user); result == false {
+		return nil, errors.New("Auth Checker Error")
 	}
 
 	tx := dbOrm.Begin()
@@ -137,6 +147,16 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input UpdateU
 
 func (r *mutationResolver) CreatePage(ctx context.Context, input NewPage) (*db.Page, error) {
 	dbOrm := db.GetDB()
+
+	user := db.User{}
+	if result := dbOrm.First(&user, uint(input.UserID)); result.Error != nil {
+		return nil, result.Error
+	}
+
+	if result := auth.Check(ctx, user); result == false {
+		return nil, errors.New("Auth Checker Error")
+	}
+
 	page := &db.Page{
 		Text:   input.Text,
 		UserID: uint(input.UserID),
@@ -154,6 +174,11 @@ func (r *mutationResolver) UpdatePage(ctx context.Context, id int, input UpdateP
 	page := db.Page{}
 	if result := dbOrm.First(&page, id); result.Error != nil {
 		return nil, result.Error
+	}
+
+	dbOrm.Model(page).Related(&page.User, "User")
+	if result := auth.Check(ctx, page.User); result == false {
+		return nil, errors.New("Auth Checker Error")
 	}
 
 	tx := dbOrm.Begin()
@@ -186,6 +211,11 @@ func (r *mutationResolver) DeletePage(ctx context.Context, id int) (bool, error)
 	page := db.Page{}
 	if result := dbOrm.First(&page, id); result.Error != nil {
 		return false, result.Error
+	}
+
+	dbOrm.Model(page).Related(&page.User, "User")
+	if result := auth.Check(ctx, page.User); result == false {
+		return false, errors.New("Auth Checker Error")
 	}
 
 	if result := dbOrm.Delete(&page); result.Error != nil {

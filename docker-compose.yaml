@@ -9,6 +9,7 @@ services:
      - MYSQL_DATABASE=test
      - MYSQL_HOST=db
      - SECRETS_FILE=/hubb/secrets/serviceAccountKey.json
+     - APP_MODE=production
     build: .
     image: hubb
     container_name: hubb

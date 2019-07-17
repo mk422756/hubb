@@ -18,8 +18,8 @@ type User struct {
 	Instagram   string
 	Facebook    string
 	Homepage    string
-	Birthday    time.Time `sql:"type:date" gorm:"default:'1970-01-01'"`
-	Pages       []Page    `gorm:"foreignkey:UserID"`
+	Birthday    *time.Time `sql:"type:date"`
+	Pages       []Page     `gorm:"foreignkey:UserID"`
 }
 
 type Page struct {
@@ -28,6 +28,7 @@ type Page struct {
 	UpdatedAt time.Time
 	DeletedAt *time.Time `sql:"index"`
 	UserID    uint
+	User      User
 	Name      string
 	Text      string `sql:"type:text"`
 	Image     string
