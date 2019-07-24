@@ -31,6 +31,10 @@ func (r *Resolver) Page() PageResolver {
 type mutationResolver struct{ *Resolver }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input NewUser) (*db.User, error) {
+	if result := auth.CheckValidUID(ctx, input.UID); result == false {
+		return nil, errors.New("Auth Checker Error")
+	}
+
 	dbOrm := db.GetDB()
 	user := &db.User{
 		Name:      input.Name,
