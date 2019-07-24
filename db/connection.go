@@ -15,7 +15,14 @@ func Connect() {
 	dbname := os.Getenv("MYSQL_DATABASE")
 	host := os.Getenv("MYSQL_HOST")
 
-	dbTemp, err := gorm.Open("mysql", user+":"+password+"@tcp("+host+":3306)/"+dbname+"?charset=utf8&parseTime=True&loc=Local")
+	var dbTemp *gorm.DB
+	var err error
+	if os.Getenv("APP_MODE") == "production" {
+		dbTemp, err = gorm.Open("mysql", user+":"+password+"@unix("+host+")/"+dbname+"?charset=utf8&parseTime=True&loc=Local")
+	} else {
+		dbTemp, err = gorm.Open("mysql", user+":"+password+"@tcp("+host+":3306)/"+dbname+"?charset=utf8&parseTime=True&loc=Local")
+	}
+
 	if err != nil {
 		panic("failed to connect database")
 	}
