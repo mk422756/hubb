@@ -4,7 +4,6 @@ package gql
 import (
 	"context"
 	"errors"
-	"time"
 
 	"github.com/hubbdevelopers/auth"
 	"github.com/hubbdevelopers/db"
@@ -101,18 +100,6 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input UpdateU
 
 	if input.Image != nil {
 		if result := tx.Model(&user).Update("Image", *input.Image); result.Error != nil {
-			tx.Rollback()
-			return nil, result.Error
-		}
-	}
-
-	if input.Birthday != nil {
-		date, err := time.Parse("2006-01-02", *input.Birthday)
-		if err != nil {
-			tx.Rollback()
-			return nil, err
-		}
-		if result := tx.Model(&user).Update("Birthday", date); result.Error != nil {
 			tx.Rollback()
 			return nil, result.Error
 		}
@@ -287,10 +274,6 @@ func (r *userResolver) ID(ctx context.Context, obj *db.User) (int, error) {
 	return int(obj.ID), nil
 }
 
-func (r *userResolver) Birthday(ctx context.Context, obj *db.User) (string, error) {
-	return obj.Birthday.Format("2006-01-02"), nil
-}
-
 func (r *userResolver) Pages(ctx context.Context, obj *db.User) ([]*db.Page, error) {
 	dbOrm := db.GetDB()
 	pages := []*db.Page{}
@@ -311,9 +294,9 @@ func (r *userResolver) UpdatedAt(ctx context.Context, obj *db.User) (string, err
 type pageResolver struct{ *Resolver }
 
 func (r *pageResolver) User(ctx context.Context, obj *db.Page) (*db.User, error) {
-
 	dbOrm := db.GetDB()
 	user := db.User{}
+
 	if result := dbOrm.First(&user, obj.UserID); result.Error != nil {
 		return nil, result.Error
 	}

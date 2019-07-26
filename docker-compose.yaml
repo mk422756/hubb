@@ -8,10 +8,10 @@ services:
      - MYSQL_PASSWORD=test
      - MYSQL_DATABASE=test
      - MYSQL_HOST=db
-     - SECRETS_FILE=/hubb/secrets/serviceAccountKey.json
+     - GOOGLE_APPLICATION_CREDENTIALS=/hubb/secrets/serviceAccountKey.json
      - APP_MODE=local
     build: .
-    image: asia.gcr.io/hubb-prod/hubb
+    image: asia.gcr.io/hubb-prod/hubb-local
     container_name: hubb
     volumes:
       - .:/hubb

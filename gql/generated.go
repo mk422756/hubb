@@ -73,7 +73,6 @@ type ComplexityRoot struct {
 
 	User struct {
 		AccountID   func(childComplexity int) int
-		Birthday    func(childComplexity int) int
 		CreatedAt   func(childComplexity int) int
 		Description func(childComplexity int) int
 		Facebook    func(childComplexity int) int
@@ -114,7 +113,6 @@ type QueryResolver interface {
 type UserResolver interface {
 	ID(ctx context.Context, obj *db.User) (int, error)
 
-	Birthday(ctx context.Context, obj *db.User) (string, error)
 	Pages(ctx context.Context, obj *db.User) ([]*db.Page, error)
 	CreatedAt(ctx context.Context, obj *db.User) (string, error)
 	UpdatedAt(ctx context.Context, obj *db.User) (string, error)
@@ -301,13 +299,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.AccountID(childComplexity), true
 
-	case "User.birthday":
-		if e.complexity.User.Birthday == nil {
-			break
-		}
-
-		return e.complexity.User.Birthday(childComplexity), true
-
 	case "User.createdAt":
 		if e.complexity.User.CreatedAt == nil {
 			break
@@ -480,7 +471,6 @@ var parsedSchema = gqlparser.MustLoadSchema(
   instagram: String!
   facebook: String!
   homepage: String!
-  birthday: String!
   pages: [Page!]!
   createdAt: String!
   updatedAt: String!
@@ -516,7 +506,6 @@ input UpdateUser {
   instagram: String
   facebook: String
   homepage: String
-  birthday: String
   image: String
 }
 
@@ -1578,33 +1567,6 @@ func (ec *executionContext) _User_homepage(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _User_birthday(ctx context.Context, field graphql.CollectedField, obj *db.User) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object:   "User",
-		Field:    field,
-		Args:     nil,
-		IsMethod: true,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().Birthday(rctx, obj)
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(string)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _User_pages(ctx context.Context, field graphql.CollectedField, obj *db.User) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -2649,12 +2611,6 @@ func (ec *executionContext) unmarshalInputUpdateUser(ctx context.Context, v inte
 			if err != nil {
 				return it, err
 			}
-		case "birthday":
-			var err error
-			it.Birthday, err = ec.unmarshalOString2ᚖstring(ctx, v)
-			if err != nil {
-				return it, err
-			}
 		case "image":
 			var err error
 			it.Image, err = ec.unmarshalOString2ᚖstring(ctx, v)
@@ -2980,20 +2936,6 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "birthday":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._User_birthday(ctx, field, obj)
-				if res == graphql.Null {
-					atomic.AddUint32(&invalids, 1)
-				}
-				return res
-			})
 		case "pages":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {

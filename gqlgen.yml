@@ -22,3 +22,6 @@ models:
         resolver: true # force a resolver to be generated
   Page:
     model: github.com/hubbdevelopers/db.Page
+    fields:
+      user:
+        resolver: true # force a resolver to be generated

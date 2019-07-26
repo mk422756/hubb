@@ -1,0 +1,18 @@
+FROM golang:latest as builder
+
+WORKDIR /hubb
+ADD . /hubb
+
+RUN go generate ./... && \ 
+    CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -ldflags="-w -s" -o app main.go
+
+FROM alpine
+COPY --from=builder /hubb/app /go/bin/app
+
+ENV PORT 8080
+EXPOSE 8080
+RUN apk update && apk add ca-certificates
+
+USER nobody
+
+CMD /go/bin/app

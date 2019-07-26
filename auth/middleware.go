@@ -4,17 +4,14 @@ import (
 	"context"
 	"log"
 	"net/http"
-	"os"
 	"strings"
 
 	firebase "firebase.google.com/go"
-	"google.golang.org/api/option"
 )
 
 func UIDMiddleware(h http.Handler) http.Handler {
-	opt := option.WithCredentialsFile(os.Getenv("SECRETS_FILE"))
 	ctx := context.Background()
-	app, err := firebase.NewApp(ctx, nil, opt)
+	app, err := firebase.NewApp(ctx, nil)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
 	}
@@ -27,14 +24,17 @@ func UIDMiddleware(h http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		bearer := r.Header.Get("Authorization")
 		idToken := strings.Replace(bearer, "Bearer ", "", 1)
-		token, e := client.VerifyIDToken(r.Context(), idToken)
-		if e != nil {
-			println(e.Error())
-		}
 
-		if token != nil {
-			ctx2 := SetUID(ctx, token.UID)
-			r = r.WithContext(ctx2)
+		if idToken != "" {
+			token, e := client.VerifyIDToken(r.Context(), idToken)
+			if e != nil {
+				println(e.Error())
+			}
+
+			if token != nil {
+				ctx2 := SetUID(ctx, token.UID)
+				r = r.WithContext(ctx2)
+			}
 		}
 
 		h.ServeHTTP(w, r)

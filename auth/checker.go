@@ -7,7 +7,6 @@ import (
 
 	firebase "firebase.google.com/go"
 	"github.com/hubbdevelopers/db"
-	"google.golang.org/api/option"
 )
 
 func Check(ctx context.Context, user db.User) bool {
@@ -40,8 +39,7 @@ func CheckValidUID(ctx context.Context, uid string) bool {
 		return true
 	}
 
-	opt := option.WithCredentialsFile(os.Getenv("SECRETS_FILE"))
-	app, err := firebase.NewApp(ctx, nil, opt)
+	app, err := firebase.NewApp(ctx, nil)
 	if err != nil {
 		log.Fatalf("error initializing app: %v\n", err)
 	}

@@ -18,8 +18,7 @@ type User struct {
 	Instagram   string
 	Facebook    string
 	Homepage    string
-	Birthday    *time.Time `sql:"type:date"`
-	Pages       []Page     `gorm:"foreignkey:UserID"`
+	Pages       []Page    `gorm:"foreignkey:UserID"`
 }
 
 type Page struct {

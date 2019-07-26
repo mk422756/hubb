@@ -9,7 +9,6 @@ type User {
   instagram: String!
   facebook: String!
   homepage: String!
-  birthday: String!
   pages: [Page!]!
   createdAt: String!
   updatedAt: String!
@@ -45,7 +44,6 @@ input UpdateUser {
   instagram: String
   facebook: String
   homepage: String
-  birthday: String
   image: String
 }
 

@@ -31,10 +31,10 @@ func main() {
 
 	// See https://github.com/rs/cors for full option listing
 	router.Use(cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:3000", "http://localhost:8080"},
+		AllowedOrigins:   []string{"*"},
 		AllowedHeaders:   []string{"Authorization", "Content-Type"},
 		AllowCredentials: true,
-		Debug:            true,
+		Debug:            false,
 	}).Handler)
 
 	router.Handle("/", handler.Playground("GraphQL playground", "/query"))
