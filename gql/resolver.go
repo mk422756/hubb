@@ -7,9 +7,12 @@ import (
 
 	"github.com/hubbdevelopers/auth"
 	"github.com/hubbdevelopers/db"
+	"github.com/hubbdevelopers/repository"
 ) // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
 
 type Resolver struct {
+	UserRepo repository.User
+	PageRepo repository.Page
 }
 
 func (r *Resolver) Mutation() MutationResolver {
@@ -34,117 +37,82 @@ func (r *mutationResolver) CreateUser(ctx context.Context, input NewUser) (*db.U
 		return nil, errors.New("Auth Checker Error")
 	}
 
-	dbOrm := db.GetDB()
 	user := &db.User{
 		Name:      input.Name,
 		AccountID: input.AccountID,
 		UID:       input.UID,
 	}
 
-	if result := dbOrm.Create(user); result.Error != nil {
-		return nil, result.Error
-	}
-
-	return user, nil
+	return user, r.UserRepo.Create(user)
 }
 
 func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (bool, error) {
-	dbOrm := db.GetDB()
-	user := db.User{}
-	if result := dbOrm.First(&user, id); result.Error != nil {
-		return false, result.Error
+	user, err := r.UserRepo.FindById(uint(id))
+	if err != nil {
+		return false, err
 	}
 
-	if result := auth.Check(ctx, user); result == false {
+	if result := auth.Check(ctx, *user); result == false {
 		return false, errors.New("Auth Checker Error")
 	}
 
-	if result := dbOrm.Delete(user); result.Error != nil {
-		return false, result.Error
+	err = r.UserRepo.Delete(user)
+
+	if err != nil {
+		return false, err
 	}
 
 	return true, nil
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input UpdateUser) (*db.User, error) {
-	dbOrm := db.GetDB()
-	user := db.User{}
-	if result := dbOrm.First(&user, id); result.Error != nil {
-		return nil, result.Error
+	user, err := r.UserRepo.FindById(uint(id))
+	if err != nil {
+		return nil, err
 	}
 
-	if result := auth.Check(ctx, user); result == false {
+	if result := auth.Check(ctx, *user); result == false {
 		return nil, errors.New("Auth Checker Error")
 	}
 
-	tx := dbOrm.Begin()
-	defer func() {
-		if r := recover(); r != nil {
-			tx.Rollback()
-		}
-	}()
-
 	if input.Description != nil {
-		if result := tx.Model(&user).Update("Description", *input.Description); result.Error != nil {
-			tx.Rollback()
-			return nil, result.Error
-		}
+		user.Description = *input.Description
 	}
 
 	if input.Name != nil {
-		if result := tx.Model(&user).Update("Name", *input.Name); result.Error != nil {
-			tx.Rollback()
-			return nil, result.Error
-		}
+		user.Name = *input.Name
 	}
 
 	if input.Image != nil {
-		if result := tx.Model(&user).Update("Image", *input.Image); result.Error != nil {
-			tx.Rollback()
-			return nil, result.Error
-		}
+		user.Image = *input.Image
 	}
 
 	if input.Twitter != nil {
-		if result := tx.Model(&user).Update("Twitter", *input.Twitter); result.Error != nil {
-			tx.Rollback()
-			return nil, result.Error
-		}
+		user.Twitter = *input.Twitter
 	}
 
 	if input.Instagram != nil {
-		if result := tx.Model(&user).Update("Instagram", *input.Instagram); result.Error != nil {
-			tx.Rollback()
-			return nil, result.Error
-		}
+		user.Instagram = *input.Instagram
 	}
 
 	if input.Facebook != nil {
-		if result := tx.Model(&user).Update("Facebook", *input.Facebook); result.Error != nil {
-			tx.Rollback()
-			return nil, result.Error
-		}
+		user.Facebook = *input.Facebook
 	}
 
 	if input.Homepage != nil {
-		if result := tx.Model(&user).Update("Homepage", *input.Homepage); result.Error != nil {
-			tx.Rollback()
-			return nil, result.Error
-		}
+		user.Homepage = *input.Homepage
 	}
 
-	return &user, tx.Commit().Error
+	return user, r.UserRepo.Update(user)
 }
 
 func (r *mutationResolver) CreatePage(ctx context.Context, input NewPage) (*db.Page, error) {
-	dbOrm := db.GetDB()
-
-	user := db.User{}
-	if result := dbOrm.First(&user, uint(input.UserID)); result.Error != nil {
-		return nil, result.Error
+	user, err := r.UserRepo.FindById(uint(input.UserID))
+	if err != nil {
+		return nil, err
 	}
 
-	if result := auth.Check(ctx, user); result == false {
+	if result := auth.Check(ctx, *user); result == false {
 		return nil, errors.New("Auth Checker Error")
 	}
 
@@ -153,64 +121,53 @@ func (r *mutationResolver) CreatePage(ctx context.Context, input NewPage) (*db.P
 		UserID: uint(input.UserID),
 		Name:   input.Name,
 	}
-	if result := dbOrm.Create(page); result.Error != nil {
-		return nil, result.Error
+
+	err = r.PageRepo.Create(page)
+	if err != nil {
+		return nil, err
 	}
 
 	return page, nil
 }
 
 func (r *mutationResolver) UpdatePage(ctx context.Context, id int, input UpdatePage) (*db.Page, error) {
-	dbOrm := db.GetDB()
-	page := db.Page{}
-	if result := dbOrm.First(&page, id); result.Error != nil {
-		return nil, result.Error
+	page, err := r.PageRepo.FindById(uint(id))
+	if err != nil {
+		return nil, err
 	}
 
-	dbOrm.Model(page).Related(&page.User, "User")
 	if result := auth.Check(ctx, page.User); result == false {
 		return nil, errors.New("Auth Checker Error")
 	}
 
-	tx := dbOrm.Begin()
 	if input.Name != nil {
-		if result := tx.Model(&page).Update("Name", *input.Name); result.Error != nil {
-			tx.Rollback()
-			return nil, result.Error
-		}
+		page.Name = *input.Name
 	}
 
 	if input.Text != nil {
-		if result := tx.Model(&page).Update("Text", *input.Text); result.Error != nil {
-			tx.Rollback()
-			return nil, result.Error
-		}
+		page.Text = *input.Text
 	}
 
 	if input.Image != nil {
-		if result := tx.Model(&page).Update("Image", *input.Image); result.Error != nil {
-			tx.Rollback()
-			return nil, result.Error
-		}
+		page.Image = *input.Image
 	}
 
-	return &page, tx.Commit().Error
+	return page, r.PageRepo.Update(page)
 }
 
 func (r *mutationResolver) DeletePage(ctx context.Context, id int) (bool, error) {
-	dbOrm := db.GetDB()
-	page := db.Page{}
-	if result := dbOrm.First(&page, id); result.Error != nil {
-		return false, result.Error
+	page, err := r.PageRepo.FindById(uint(id))
+	if err != nil {
+		return false, err
 	}
 
-	dbOrm.Model(page).Related(&page.User, "User")
 	if result := auth.Check(ctx, page.User); result == false {
 		return false, errors.New("Auth Checker Error")
 	}
 
-	if result := dbOrm.Delete(&page); result.Error != nil {
-		return false, result.Error
+	err = r.PageRepo.Delete(page)
+	if err != nil {
+		return false, err
 	}
 
 	return true, nil
@@ -219,53 +176,42 @@ func (r *mutationResolver) DeletePage(ctx context.Context, id int) (bool, error)
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Pages(ctx context.Context) ([]*db.Page, error) {
-	dbOrm := db.GetDB()
-	pages := []*db.Page{}
-	if result := dbOrm.Find(&pages); result.Error != nil {
-		return nil, result.Error
+	pages, err := r.PageRepo.Find()
+	if err != nil {
+		return nil, err
 	}
 
 	return pages, nil
 }
 
 func (r *queryResolver) Page(ctx context.Context, id *int) (*db.Page, error) {
-	dbOrm := db.GetDB()
-	page := db.Page{}
-	if result := dbOrm.First(&page, *id); result.Error != nil {
-		return nil, result.Error
+	page, err := r.PageRepo.FindById(uint(*id))
+	if err != nil {
+		return nil, err
 	}
 
-	return &page, nil
+	return page, nil
 }
 
 func (r *queryResolver) Users(ctx context.Context) ([]*db.User, error) {
-	dbOrm := db.GetDB()
-	users := []*db.User{}
-	if result := dbOrm.Find(&users); result.Error != nil {
-		return nil, result.Error
+	users, err := r.UserRepo.Find()
+
+	if err != nil {
+		return nil, err
 	}
 
 	return users, nil
 }
 
 func (r *queryResolver) User(ctx context.Context, id *int, accountID *string, uid *string) (*db.User, error) {
-	dbOrm := db.GetDB()
-	user := db.User{}
 	if id != nil {
-		if result := dbOrm.First(&user, *id); result.Error != nil {
-			return nil, result.Error
-		}
+		return r.UserRepo.FindById(uint(*id))
 	} else if accountID != nil {
-		if result := dbOrm.Where("account_id = ?", *accountID).First((&user)); result.Error != nil {
-			return nil, result.Error
-		}
+		return r.UserRepo.FindByAccountId(*accountID)
 	} else if uid != nil {
-		if result := dbOrm.Where("uid = ?", *uid).First((&user)); result.Error != nil {
-			return nil, result.Error
-		}
+		return r.UserRepo.FindByUId(*uid)
 	}
-
-	return &user, nil
+	return nil, errors.New("cannot find user")
 }
 
 type userResolver struct{ *Resolver }
@@ -275,10 +221,9 @@ func (r *userResolver) ID(ctx context.Context, obj *db.User) (int, error) {
 }
 
 func (r *userResolver) Pages(ctx context.Context, obj *db.User) ([]*db.Page, error) {
-	dbOrm := db.GetDB()
-	pages := []*db.Page{}
-	if result := dbOrm.Model(obj).Related(&pages); result.Error != nil {
-		return nil, result.Error
+	pages, err := r.PageRepo.FindByUser(obj)
+	if err != nil {
+		return nil, err
 	}
 	return pages, nil
 }
@@ -294,13 +239,12 @@ func (r *userResolver) UpdatedAt(ctx context.Context, obj *db.User) (string, err
 type pageResolver struct{ *Resolver }
 
 func (r *pageResolver) User(ctx context.Context, obj *db.Page) (*db.User, error) {
-	dbOrm := db.GetDB()
-	user := db.User{}
-
-	if result := dbOrm.First(&user, obj.UserID); result.Error != nil {
-		return nil, result.Error
+	user, err := r.UserRepo.FindById(obj.UserID)
+	if err != nil {
+		return nil, err
 	}
-	return &user, nil
+
+	return user, nil
 }
 
 func (r *pageResolver) ID(ctx context.Context, obj *db.Page) (int, error) {

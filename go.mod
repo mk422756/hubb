@@ -5,6 +5,7 @@ go 1.12
 require (
 	firebase.google.com/go v3.8.1+incompatible
 	github.com/99designs/gqlgen v0.9.0
+	github.com/DATA-DOG/go-sqlmock v1.3.3
 	github.com/gin-contrib/cors v1.3.0
 	github.com/gin-gonic/gin v1.4.0
 	github.com/go-chi/chi v4.0.0+incompatible

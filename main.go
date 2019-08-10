@@ -10,6 +10,7 @@ import (
 	"github.com/hubbdevelopers/auth"
 	"github.com/hubbdevelopers/db"
 	"github.com/hubbdevelopers/gql"
+	"github.com/hubbdevelopers/repository"
 
 	_ "github.com/jinzhu/gorm/dialects/mysql"
 	"github.com/rs/cors"
@@ -37,8 +38,13 @@ func main() {
 		Debug:            false,
 	}).Handler)
 
+	resolver := &gql.Resolver{
+		UserRepo: repository.NewUserRepository(db.GetDB()),
+		PageRepo: repository.NewPageRepository(db.GetDB()),
+	}
+
 	router.Handle("/", handler.Playground("GraphQL playground", "/query"))
-	router.Handle("/query", auth.UIDMiddleware(handler.GraphQL(gql.NewExecutableSchema(gql.Config{Resolvers: &gql.Resolver{}}))))
+	router.Handle("/query", auth.UIDMiddleware(handler.GraphQL(gql.NewExecutableSchema(gql.Config{Resolvers: resolver}))))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	err := http.ListenAndServe(":"+port, router)
