@@ -41,6 +41,7 @@ func main() {
 	resolver := &gql.Resolver{
 		UserRepo: repository.NewUserRepository(db.GetDB()),
 		PageRepo: repository.NewPageRepository(db.GetDB()),
+		TagRepo:  repository.NewTagRepository(db.GetDB()),
 	}
 
 	router.Handle("/", handler.Playground("GraphQL playground", "/query"))

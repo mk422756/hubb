@@ -29,6 +29,8 @@ func Connect() {
 
 	dbTemp.AutoMigrate(&User{})
 	dbTemp.AutoMigrate(&Page{}).AddForeignKey("user_id", "users(id)", "CASCADE", "CASCADE")
+	dbTemp.AutoMigrate(&Tag{})
+	// dbTemp.AutoMigrate(&PageTag{}).AddForeignKey("page_id", "pages(id)", "CASCADE", "CASCADE").AddForeignKey("tag_id", "tags(id)", "RESTRICT", "RESTRICT")
 	db = dbTemp
 }
 

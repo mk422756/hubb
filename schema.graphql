@@ -20,6 +20,15 @@ type Page {
   text: String!
   user: User!
   image: String!
+  tags: [Tag!]!
+  createdAt: String!
+  updatedAt: String!
+}
+
+type Tag {
+  id: ID!
+  name: String!
+  pages: [Page!]!
   createdAt: String!
   updatedAt: String!
 }
@@ -29,6 +38,8 @@ type Query {
   user(id: ID, accountId: String, uid: String): User!
   pages: [Page!]!
   page(id: ID): Page!
+  tags: [Tag!]!
+  tag(id: ID): Tag!
 }
 
 input NewUser {
@@ -51,12 +62,14 @@ input NewPage {
   text: String!
   name: String!
   userId: ID!
+  tags: [String]
 }
 
 input UpdatePage {
   text: String
   name: String
   image: String
+  tags: [String]
 }
 
 type Mutation {

@@ -9,7 +9,7 @@ services:
      - MYSQL_DATABASE=test
      - MYSQL_HOST=db
      - GOOGLE_APPLICATION_CREDENTIALS=/hubb/secrets/serviceAccountKey.json
-     - APP_MODE=debug
+     - APP_MODE=local
     build: .
     image: asia.gcr.io/hubb-prod/hubb-local
     container_name: hubb

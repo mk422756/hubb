@@ -13,6 +13,7 @@ import (
 type Resolver struct {
 	UserRepo repository.User
 	PageRepo repository.Page
+	TagRepo  repository.Tag
 }
 
 func (r *Resolver) Mutation() MutationResolver {
@@ -28,6 +29,10 @@ func (r *Resolver) User() UserResolver {
 
 func (r *Resolver) Page() PageResolver {
 	return &pageResolver{r}
+}
+
+func (r *Resolver) Tag() TagResolver {
+	return &tagResolver{r}
 }
 
 type mutationResolver struct{ *Resolver }
@@ -127,6 +132,21 @@ func (r *mutationResolver) CreatePage(ctx context.Context, input NewPage) (*db.P
 		return nil, err
 	}
 
+	if input.Tags != nil {
+		// create tag
+		var tags []*db.Tag
+		for _, tagName := range input.Tags {
+			tag, err := r.TagRepo.FindByName(*tagName)
+			if err != nil {
+				tag = &db.Tag{
+					Name: *tagName,
+				}
+			}
+			tags = append(tags, tag)
+		}
+		r.PageRepo.Associate(page, tags)
+	}
+
 	return page, nil
 }
 
@@ -136,7 +156,12 @@ func (r *mutationResolver) UpdatePage(ctx context.Context, id int, input UpdateP
 		return nil, err
 	}
 
-	if result := auth.Check(ctx, page.User); result == false {
+	user, err := r.UserRepo.FindById(page.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	if result := auth.Check(ctx, *user); result == false {
 		return nil, errors.New("Auth Checker Error")
 	}
 
@@ -152,6 +177,21 @@ func (r *mutationResolver) UpdatePage(ctx context.Context, id int, input UpdateP
 		page.Image = *input.Image
 	}
 
+	if input.Tags != nil {
+		// create tag
+		var tags []*db.Tag
+		for _, tagName := range input.Tags {
+			tag, err := r.TagRepo.FindByName(*tagName)
+			if err != nil {
+				tag = &db.Tag{
+					Name: *tagName,
+				}
+			}
+			tags = append(tags, tag)
+		}
+		r.PageRepo.Associate(page, tags)
+	}
+
 	return page, r.PageRepo.Update(page)
 }
 
@@ -161,7 +201,12 @@ func (r *mutationResolver) DeletePage(ctx context.Context, id int) (bool, error)
 		return false, err
 	}
 
-	if result := auth.Check(ctx, page.User); result == false {
+	user, err := r.UserRepo.FindById(page.UserID)
+	if err != nil {
+		return false, err
+	}
+
+	if result := auth.Check(ctx, *user); result == false {
 		return false, errors.New("Auth Checker Error")
 	}
 
@@ -214,6 +259,25 @@ func (r *queryResolver) User(ctx context.Context, id *int, accountID *string, ui
 	return nil, errors.New("cannot find user")
 }
 
+func (r *queryResolver) Tags(ctx context.Context) ([]*db.Tag, error) {
+	tags, err := r.TagRepo.Find()
+
+	if err != nil {
+		return nil, err
+	}
+
+	return tags, nil
+}
+
+func (r *queryResolver) Tag(ctx context.Context, id *int) (*db.Tag, error) {
+	tag, err := r.TagRepo.FindById(uint(*id))
+	if err != nil {
+		return nil, err
+	}
+
+	return tag, nil
+}
+
 type userResolver struct{ *Resolver }
 
 func (r *userResolver) ID(ctx context.Context, obj *db.User) (int, error) {
@@ -257,4 +321,34 @@ func (r *pageResolver) CreatedAt(ctx context.Context, obj *db.Page) (string, err
 
 func (r *pageResolver) UpdatedAt(ctx context.Context, obj *db.Page) (string, error) {
 	return obj.UpdatedAt.String(), nil
+}
+
+func (r *pageResolver) Tags(ctx context.Context, obj *db.Page) ([]*db.Tag, error) {
+	tags, err := r.TagRepo.FindByPageId(uint(obj.ID))
+	if err != nil {
+		return nil, err
+	}
+	return tags, nil
+}
+
+type tagResolver struct{ *Resolver }
+
+func (r *tagResolver) ID(ctx context.Context, obj *db.Tag) (int, error) {
+	return int(obj.ID), nil
+}
+
+func (r *tagResolver) CreatedAt(ctx context.Context, obj *db.Tag) (string, error) {
+	return obj.CreatedAt.String(), nil
+}
+
+func (r *tagResolver) UpdatedAt(ctx context.Context, obj *db.Tag) (string, error) {
+	return obj.UpdatedAt.String(), nil
+}
+
+func (r *tagResolver) Pages(ctx context.Context, obj *db.Tag) ([]*db.Page, error) {
+	pages, err := r.PageRepo.FindByTagId(uint(obj.ID))
+	if err != nil {
+		return nil, err
+	}
+	return pages, nil
 }

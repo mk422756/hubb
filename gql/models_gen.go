@@ -3,9 +3,10 @@
 package gql
 
 type NewPage struct {
-	Text   string `json:"text"`
-	Name   string `json:"name"`
-	UserID int    `json:"userId"`
+	Text   string    `json:"text"`
+	Name   string    `json:"name"`
+	UserID int       `json:"userId"`
+	Tags   []*string `json:"tags"`
 }
 
 type NewUser struct {
@@ -15,9 +16,10 @@ type NewUser struct {
 }
 
 type UpdatePage struct {
-	Text  *string `json:"text"`
-	Name  *string `json:"name"`
-	Image *string `json:"image"`
+	Text  *string   `json:"text"`
+	Name  *string   `json:"name"`
+	Image *string   `json:"image"`
+	Tags  []*string `json:"tags"`
 }
 
 type UpdateUser struct {

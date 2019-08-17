@@ -18,7 +18,7 @@ type User struct {
 	Instagram   string
 	Facebook    string
 	Homepage    string
-	Pages       []Page    `gorm:"foreignkey:UserID"`
+	Pages       []Page
 }
 
 type Page struct {
@@ -31,4 +31,14 @@ type Page struct {
 	Name      string
 	Text      string `sql:"type:text"`
 	Image     string
+	Tags      []Tag `gorm:"many2many:page_tags;"`
+}
+
+type Tag struct {
+	ID        uint `gorm:"primary_key"`
+	CreatedAt time.Time
+	UpdatedAt time.Time
+	DeletedAt *time.Time `sql:"index"`
+	Name      string
+	Pages     []Page `gorm:"many2many:page_tags;"`
 }

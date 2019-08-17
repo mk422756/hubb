@@ -25,3 +25,10 @@ models:
     fields:
       user:
         resolver: true # force a resolver to be generated
+      tags:
+        resolver: true # force a resolver to be generated
+  Tag:
+    model: github.com/hubbdevelopers/db.Tag
+    fields:
+      pages:
+        resolver: true # force a resolver to be generated
