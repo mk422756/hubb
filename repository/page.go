@@ -29,7 +29,7 @@ func NewPageRepository(db *gorm.DB) Page {
 
 func (r *PageRepository) Find() ([]*db.Page, error) {
 	pages := []*db.Page{}
-	if result := r.DB.Find(&pages); result.Error != nil {
+	if result := r.DB.Order("created_at desc").Find(&pages); result.Error != nil {
 		return nil, result.Error
 	}
 	return pages, nil
@@ -45,7 +45,7 @@ func (r *PageRepository) FindById(id uint) (*db.Page, error) {
 
 func (r *PageRepository) FindByUser(obj *db.User) ([]*db.Page, error) {
 	pages := []*db.Page{}
-	if result := r.DB.Model(obj).Related(&pages); result.Error != nil {
+	if result := r.DB.Model(obj).Order("created_at desc").Related(&pages); result.Error != nil {
 		return nil, result.Error
 	}
 	return pages, nil
@@ -58,7 +58,7 @@ func (r *PageRepository) FindByTagId(id uint) ([]*db.Page, error) {
 	}
 	pages := []*db.Page{}
 
-	r.DB.Model(&tag).Association("Pages").Find(&pages)
+	r.DB.Model(&tag).Order("created_at desc").Association("Pages").Find(&pages)
 
 	return pages, nil
 }
