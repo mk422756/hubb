@@ -4,6 +4,7 @@ package gql
 import (
 	"context"
 	"errors"
+	"time"
 
 	"github.com/hubbdevelopers/auth"
 	"github.com/hubbdevelopers/db"
@@ -293,11 +294,11 @@ func (r *userResolver) Pages(ctx context.Context, obj *db.User) ([]*db.Page, err
 }
 
 func (r *userResolver) CreatedAt(ctx context.Context, obj *db.User) (string, error) {
-	return obj.CreatedAt.String(), nil
+	return obj.CreatedAt.Format(time.RFC3339), nil
 }
 
 func (r *userResolver) UpdatedAt(ctx context.Context, obj *db.User) (string, error) {
-	return obj.UpdatedAt.String(), nil
+	return obj.UpdatedAt.Format(time.RFC3339), nil
 }
 
 type pageResolver struct{ *Resolver }
@@ -316,11 +317,11 @@ func (r *pageResolver) ID(ctx context.Context, obj *db.Page) (int, error) {
 }
 
 func (r *pageResolver) CreatedAt(ctx context.Context, obj *db.Page) (string, error) {
-	return obj.CreatedAt.String(), nil
+	return obj.CreatedAt.Format(time.RFC3339), nil
 }
 
 func (r *pageResolver) UpdatedAt(ctx context.Context, obj *db.Page) (string, error) {
-	return obj.UpdatedAt.String(), nil
+	return obj.UpdatedAt.Format(time.RFC3339), nil
 }
 
 func (r *pageResolver) Tags(ctx context.Context, obj *db.Page) ([]*db.Tag, error) {
@@ -338,11 +339,11 @@ func (r *tagResolver) ID(ctx context.Context, obj *db.Tag) (int, error) {
 }
 
 func (r *tagResolver) CreatedAt(ctx context.Context, obj *db.Tag) (string, error) {
-	return obj.CreatedAt.String(), nil
+	return obj.CreatedAt.Format(time.RFC3339), nil
 }
 
 func (r *tagResolver) UpdatedAt(ctx context.Context, obj *db.Tag) (string, error) {
-	return obj.UpdatedAt.String(), nil
+	return obj.UpdatedAt.Format(time.RFC3339), nil
 }
 
 func (r *tagResolver) Pages(ctx context.Context, obj *db.Tag) ([]*db.Page, error) {
