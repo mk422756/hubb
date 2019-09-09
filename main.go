@@ -30,6 +30,20 @@ func main() {
 
 	router := chi.NewRouter()
 
+	authClient, err := auth.NewClient()
+	if err != nil {
+		log.Println("new Authentication Client error")
+		log.Println(err.Error())
+		panic(err)
+	}
+
+	authenticator, err := auth.NewAuthenticator(authClient)
+	if err != nil {
+		log.Println("new Authentication error")
+		log.Println(err.Error())
+		panic(err)
+	}
+
 	// See https://github.com/rs/cors for full option listing
 	router.Use(cors.New(cors.Options{
 		AllowedOrigins:   []string{"*"},
@@ -39,16 +53,17 @@ func main() {
 	}).Handler)
 
 	resolver := &gql.Resolver{
-		UserRepo: repository.NewUserRepository(db.GetDB()),
-		PageRepo: repository.NewPageRepository(db.GetDB()),
-		TagRepo:  repository.NewTagRepository(db.GetDB()),
+		UserRepo:      repository.NewUserRepository(db.GetDB()),
+		PageRepo:      repository.NewPageRepository(db.GetDB()),
+		TagRepo:       repository.NewTagRepository(db.GetDB()),
+		Authenticator: authenticator,
 	}
 
 	router.Handle("/", handler.Playground("GraphQL playground", "/query"))
-	router.Handle("/query", auth.UIDMiddleware(handler.GraphQL(gql.NewExecutableSchema(gql.Config{Resolvers: resolver}))))
+	router.Handle("/query", authenticator.UIDMiddleware(handler.GraphQL(gql.NewExecutableSchema(gql.Config{Resolvers: resolver}))))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
-	err := http.ListenAndServe(":"+port, router)
+	err = http.ListenAndServe(":"+port, router)
 	if err != nil {
 		panic(err)
 	}

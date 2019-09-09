@@ -12,9 +12,10 @@ import (
 ) // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
 
 type Resolver struct {
-	UserRepo repository.User
-	PageRepo repository.Page
-	TagRepo  repository.Tag
+	UserRepo      repository.User
+	PageRepo      repository.Page
+	TagRepo       repository.Tag
+	Authenticator auth.Authenticator
 }
 
 func (r *Resolver) Mutation() MutationResolver {
@@ -39,7 +40,7 @@ func (r *Resolver) Tag() TagResolver {
 type mutationResolver struct{ *Resolver }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, input NewUser) (*db.User, error) {
-	if result := auth.CheckValidUID(ctx, input.UID); result == false {
+	if result := r.Authenticator.IsAlreadyRegisteredUID(ctx, input.UID); result == false {
 		return nil, errors.New("Auth Checker Error")
 	}
 
@@ -58,7 +59,7 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id int) (bool, error)
 		return false, err
 	}
 
-	if result := auth.Check(ctx, *user); result == false {
+	if result := r.Authenticator.IsValidUID(ctx, user.UID); result == false {
 		return false, errors.New("Auth Checker Error")
 	}
 
@@ -77,7 +78,7 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id int, input UpdateU
 		return nil, err
 	}
 
-	if result := auth.Check(ctx, *user); result == false {
+	if result := r.Authenticator.IsValidUID(ctx, user.UID); result == false {
 		return nil, errors.New("Auth Checker Error")
 	}
 
@@ -118,7 +119,7 @@ func (r *mutationResolver) CreatePage(ctx context.Context, input NewPage) (*db.P
 		return nil, err
 	}
 
-	if result := auth.Check(ctx, *user); result == false {
+	if result := r.Authenticator.IsValidUID(ctx, user.UID); result == false {
 		return nil, errors.New("Auth Checker Error")
 	}
 
@@ -162,7 +163,7 @@ func (r *mutationResolver) UpdatePage(ctx context.Context, id int, input UpdateP
 		return nil, err
 	}
 
-	if result := auth.Check(ctx, *user); result == false {
+	if result := r.Authenticator.IsValidUID(ctx, user.UID); result == false {
 		return nil, errors.New("Auth Checker Error")
 	}
 
@@ -207,7 +208,7 @@ func (r *mutationResolver) DeletePage(ctx context.Context, id int) (bool, error)
 		return false, err
 	}
 
-	if result := auth.Check(ctx, *user); result == false {
+	if result := r.Authenticator.IsValidUID(ctx, user.UID); result == false {
 		return false, errors.New("Auth Checker Error")
 	}
 
